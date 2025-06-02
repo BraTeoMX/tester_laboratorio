@@ -1,9 +1,11 @@
 <?php
 
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Validation\Rule;
 use function Livewire\Volt\state;
 use function Livewire\Volt\mount; // 1. Importa la función 'mount'
 use function Livewire\Volt\action;
+use function Livewire\Volt\computed;
 use App\Models\User;
 use App\Models\CatalogoRol;
 
@@ -14,9 +16,15 @@ state('showModal', false);
 state('name', '');
 state('email', '');
 state('employee_number', '');
-state('role_id', '0'); // Valor por defecto
+state('role_id', ''); 
 state('password', '');
 state('password_confirmation', '');
+// --- FIN NUEVO ---
+// --- NUEVO: Propiedad computada para obtener los roles ---
+$roles = computed(function () {
+    // 3. Obtenemos solo id y nombre para ser eficientes
+    return CatalogoRol::select('id', 'nombre')->get();
+});
 // --- FIN NUEVO ---
 
 // 2. Usa la función 'mount' para cargar los datos iniciales
@@ -159,8 +167,13 @@ $closeModal = action(function () {
                     </div>
 
                     <div>
-                        <label for="role_id" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Rol ID</label>
-                        <input type="number" wire:model="role_id" id="role_id" class="block w-full mt-1 border-gray-300 rounded-md shadow-sm dark:border-gray-600 dark:bg-gray-700">
+                        <label for="role_id" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Rol</label>
+                        <select wire:model="role_id" id="role_id" class="block w-full mt-1 border-gray-300 rounded-md shadow-sm dark:border-gray-600 dark:bg-gray-700">
+                            <option value="">Seleccione un rol</option>
+                            @foreach ($this->roles as $rol)
+                                <option value="{{ $rol->id }}">{{ $rol->nombre }}</option>
+                            @endforeach
+                        </select>
                         @error('role_id') <span class="text-sm text-red-500">{{ $message }}</span> @enderror
                     </div>
 

@@ -18,7 +18,7 @@
             </flux:navlist>
             <flux:navlist variant="outline">
                 <flux:navlist.group :heading="__('Administrador')" class="grid">
-                    <flux:navlist.item icon="cog" :href="route('customers.index')" :current="request()->routeIs('customers')" wire:navigate>{{ __('Lista de Clientes') }}</flux:navlist.item>
+                    <flux:navlist.item icon="cog" :href="route('customers.index')" :current="request()->routeIs('customers.index')" wire:navigate>{{ __('Lista de Clientes') }}</flux:navlist.item>
                 </flux:navlist.group>
             </flux:navlist>
 

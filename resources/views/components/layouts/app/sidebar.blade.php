@@ -133,5 +133,17 @@
         {{ $slot }}
 
         @fluxScripts
+
+        <x-toaster-hub />
+        <script>
+            Toastify({
+                text: "Notificación desde Laravel",
+                duration: 3000,
+                gravity: "top",
+                position: "right",
+                backgroundColor: "#4f46e5"
+            }).showToast();
+        </script>
+
     </body>
 </html>

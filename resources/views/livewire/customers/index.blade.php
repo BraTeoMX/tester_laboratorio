@@ -1,17 +1,16 @@
 <?php
 
 use function Livewire\Volt\state;
-use function Livewire\Volt\on;
+use function Livewire\Volt\mount; // 1. Importa la función 'mount'
 use function Livewire\Volt\action;
 use App\Models\User;
 
 state('customers', []);
 
-on([
-    'mount' => function () {
-        $this->customers = User::all();
-    },
-]);
+// 2. Usa la función 'mount' para cargar los datos iniciales
+mount(function () {
+    $this->customers = User::all();
+});
 
 $toggleStatus = action(function (User $user) {
     $user->status = !$user->status;

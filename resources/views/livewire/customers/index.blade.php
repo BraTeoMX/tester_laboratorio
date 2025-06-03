@@ -3,15 +3,15 @@
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\Rule;
 use function Livewire\Volt\state;
-use function Livewire\Volt\mount; // 1. Importa la función 'mount'
+use function Livewire\Volt\mount;
 use function Livewire\Volt\action;
 use function Livewire\Volt\computed;
+use Livewire\Attributes\On;
 use App\Models\User;
 use App\Models\CatalogoRol;
 
+// 1. Declaración de todo el ESTADO (state)
 state('customers', []);
-
-// --- NUEVO: Estado para el modal y el formulario ---
 state('showModal', false);
 state('name', '');
 state('email', '');
@@ -19,26 +19,31 @@ state('employee_number', '');
 state('role_id', ''); 
 state('password', '');
 state('password_confirmation', '');
-// --- FIN NUEVO ---
-// --- NUEVO: Propiedad computada para obtener los roles ---
-$roles = computed(function () {
-    // 3. Obtenemos solo id y nombre para ser eficientes
-    return CatalogoRol::select('id', 'nombre')->get();
-});
-// --- FIN NUEVO ---
 
-// 2. Usa la función 'mount' para cargar los datos iniciales
+// 2. Declaración de las FUNCIONES de ciclo de vida y ACCIONES (mount, action)
 mount(function () {
     $this->customers = User::all();
 });
 
-$toggleStatus = action(function (User $user) {
-    $user->status = !$user->status;
-    $user->save();
-    $this->customers = User::all();
+#[On('confirm-toggle-status')]
+$toggleStatus = action(function ($payload) {
+    // Buscamos el usuario por el ID que nos llega del evento
+    $userToUpdate = User::find($payload['user']);
+
+    if($userToUpdate){
+        $userToUpdate->status = !$userToUpdate->status;
+        $userToUpdate->save();
+        $this->customers = User::all(); // Refrescamos la lista
+
+        // Enviamos la alerta de éxito
+        $this->dispatch('swal', [
+            'icon' => 'success',
+            'title' => '¡Actualizado!',
+            'text' => 'El estado del usuario ha sido cambiado.'
+        ]);
+    }
 });
 
-// --- NUEVO: Acción para guardar el nuevo usuario ---
 $save = action(function () {
     // Validación de los datos
     $validated = $this->validate([
@@ -60,16 +65,24 @@ $save = action(function () {
     $this->showModal = false;
     $this->customers = User::all();
 
-    // Opcional: Enviar una notificación (se puede mostrar en la vista)
-    session()->flash('success', 'Usuario creado exitosamente.');
+    // Reemplaza esto con SweetAlert también si quieres
+    $this->dispatch('swal', [
+        'icon' => 'success',
+        'title' => '¡Guardado!',
+        'text' => 'El usuario ha sido creado exitosamente.'
+    ]);
 });
-// --- FIN NUEVO ---
 
-// --- NUEVO: Función para cerrar el modal sin guardar ---
 $closeModal = action(function () {
     $this->showModal = false;
 });
-// --- FIN NUEVO ---
+
+// 3. Declaración de PROPIEDADES COMPUTADAS (computed)
+$roles = computed(function () {
+    // Obtenemos solo id y nombre para ser eficientes
+    return CatalogoRol::select('id', 'nombre')->get();
+});
+
 ?>
 
 <div>
@@ -116,11 +129,15 @@ $closeModal = action(function () {
                                         </td>
                                         <td class="px-6 py-4 whitespace-nowrap">
                                             @if ($customer->status == 1)
-                                                <button wire:click="toggleStatus({{ $customer->id }})" class="px-3 py-1 text-sm font-semibold text-white bg-red-500 rounded-md hover:bg-red-600">
+                                                <button 
+                                                    onclick="confirmStatusChange({{ $customer->id }}, 'dar de baja')" 
+                                                    class="px-3 py-1 text-sm font-semibold text-white bg-red-500 rounded-md hover:bg-red-600">
                                                     Baja
                                                 </button>
                                             @else
-                                                <button wire:click="toggleStatus({{ $customer->id }})" class="px-3 py-1 text-sm font-semibold text-white bg-green-500 rounded-md hover:bg-green-600">
+                                                <button 
+                                                    onclick="confirmStatusChange({{ $customer->id }}, 'dar de alta')" 
+                                                    class="px-3 py-1 text-sm font-semibold text-white bg-green-500 rounded-md hover:bg-green-600">
                                                     Alta
                                                 </button>
                                             @endif

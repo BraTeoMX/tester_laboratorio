@@ -2,6 +2,7 @@
 <html lang="{{ str_replace('_', '-', app()->getLocale()) }}" class="dark">
     <head>
         @include('partials.head')
+        <link href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css" rel="stylesheet">
     </head>
     <body class="min-h-screen bg-white dark:bg-zinc-800">
         <flux:sidebar sticky stashable class="border-e border-zinc-200 bg-zinc-50 dark:border-zinc-700 dark:bg-zinc-900">
@@ -134,16 +135,38 @@
 
         @fluxScripts
 
-        <x-toaster-hub />
+        <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.all.min.js"></script>
         <script>
-            Toastify({
-                text: "Notificación desde Laravel",
-                duration: 3000,
-                gravity: "top",
-                position: "right",
-                backgroundColor: "#4f46e5"
-            }).showToast();
-        </script>
+            // Listener que ya tenías para alertas genéricas (éxito, error, etc.)
+            document.addEventListener('livewire:initialized', () => {
+                Livewire.on('swal', (event) => {
+                    const data = event[0];
+                    Swal.fire({
+                        icon: data.icon,
+                        title: data.title,
+                        text: data.text,
+                    });
+                });
+            });
 
+            // ✅ NUEVA FUNCIÓN PARA LA CONFIRMACIÓN
+            function confirmStatusChange(userId, actionText) {
+                Swal.fire({
+                    title: '¿Estás seguro?',
+                    text: `Confirmas que deseas ${actionText} a este usuario?`,
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonColor: '#3085d6',
+                    cancelButtonColor: '#d33',
+                    confirmButtonText: 'Sí, ¡confirmar!',
+                    cancelButtonText: 'Cancelar'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        // Si el usuario confirma, se emite el evento al componente de Livewire
+                        Livewire.dispatch('confirm-toggle-status', { user: userId });
+                    }
+                })
+            }
+        </script>
     </body>
 </html>

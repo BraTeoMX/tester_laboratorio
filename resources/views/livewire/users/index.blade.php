@@ -3,22 +3,14 @@
 use Livewire\Volt\Component;
 use Livewire\WithPagination; // Necesario para la paginación
 use App\Models\User;
+use App\Models\CatalogoRol;
 use Illuminate\Database\Eloquent\Collection;
 
 new class extends Component {
-    // Usamos el Trait de Paginación para manejar grandes listas de datos
     use WithPagination;
-
-    // Con el método `with()` los datos estarán disponibles en la vista automáticamente.
-    // Livewire es lo suficientemente inteligente como para no volver a ejecutar esto en cada render
-    // a menos que sea necesario.
     public function with(): array
     {
         return [
-            // 1. Obtenemos los usuarios
-            // 2. Filtramos solo los que tienen `is_active = true`
-            // 3. Ordenamos por nombre
-            // 4. Paginamos los resultados, mostrando 10 por página
             'users' => User::orderBy('name')->paginate(10),
         ];
     }
@@ -26,7 +18,6 @@ new class extends Component {
 }; ?>
 
 <div>
-    {{-- Encabezado de la página (usa el layout de Laravel Breeze/Jetstream) --}}
     <x-slot name="header">
         <h2 class="font-semibold text-xl text-gray-800 dark:text-gray-200 leading-tight">
             {{ __('Usuarios Activos') }}
@@ -47,7 +38,13 @@ new class extends Component {
                                         Nombre
                                     </th>
                                     <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                                        Email
+                                        Correo Electrónico
+                                    </th>
+                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                                        Numero Empleado
+                                    </th>
+                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                                        Rol
                                     </th>
                                     <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
                                         Fecha de Registro
@@ -62,6 +59,12 @@ new class extends Component {
                                         </td>
                                         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-300">
                                             {{ $user->email }}
+                                        </td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-300">
+                                            {{ $user->employee_number }}
+                                        </td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-300">
+                                            {{ $user->role_id }}
                                         </td>
                                         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-300">
                                             {{ $user->created_at->format('d/m/Y') }}

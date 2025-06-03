@@ -60,4 +60,9 @@ class CreateModal extends ModalComponent
             'roles' => CatalogoRol::all()
         ]);
     }
+
+    public function cancel()
+    {
+        $this->closeModal(); // Este método es provisto por ModalComponent
+    }
 }

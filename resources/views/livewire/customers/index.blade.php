@@ -16,7 +16,7 @@ state('showModal', false);
 state('name', '');
 state('email', '');
 state('employee_number', '');
-state('role_id', ''); 
+state('role_id', '');
 state('password', '');
 state('password_confirmation', '');
 
@@ -25,8 +25,10 @@ mount(function () {
     $this->customers = User::all();
 });
 
+// THIS IS THE CORRECT WAY FOR AN EVENT LISTENER IN LIVEWIRE VOLT
 #[On('confirm-toggle-status')]
-$toggleStatus = action(function ($payload) {
+function toggleStatus($payload) // No 'public', no '$toggleStatus = action(...)'
+{
     // Buscamos el usuario por el ID que nos llega del evento
     $userToUpdate = User::find($payload['user']);
 
@@ -42,8 +44,9 @@ $toggleStatus = action(function ($payload) {
             'text' => 'El estado del usuario ha sido cambiado.'
         ]);
     }
-});
+}
 
+// These are correct as they use the action() helper to assign to a variable
 $save = action(function () {
     // Validación de los datos
     $validated = $this->validate([

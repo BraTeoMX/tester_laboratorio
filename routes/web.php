@@ -1,10 +1,13 @@
 <?php
-
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 use Livewire\Volt\Volt;
 
 Route::get('/', function () {
-    return view('welcome');
+    if (Auth::guest()) {
+        return redirect()->route('login');
+    }
+    return view('dashboard'); // o redirigir al dashboard
 })->name('home');
 
 Route::view('dashboard', 'dashboard')

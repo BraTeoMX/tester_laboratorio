@@ -135,39 +135,5 @@
         {{ $slot }}
 
         @fluxScripts
-
-        <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.all.min.js"></script>
-        <script>
-            // Listener que ya tenías para alertas genéricas (éxito, error, etc.)
-            document.addEventListener('livewire:initialized', () => {
-                Livewire.on('swal', (event) => {
-                    const data = event[0];
-                    Swal.fire({
-                        icon: data.icon,
-                        title: data.title,
-                        text: data.text,
-                    });
-                });
-            });
-
-            // ✅ NUEVA FUNCIÓN PARA LA CONFIRMACIÓN
-            function confirmStatusChange(userId, actionText) {
-                Swal.fire({
-                    title: '¿Estás seguro?',
-                    text: `Confirmas que deseas ${actionText} a este usuario?`,
-                    icon: 'warning',
-                    showCancelButton: true,
-                    confirmButtonColor: '#3085d6',
-                    cancelButtonColor: '#d33',
-                    confirmButtonText: 'Sí, ¡confirmar!',
-                    cancelButtonText: 'Cancelar'
-                }).then((result) => {
-                    if (result.isConfirmed) {
-                        // Si el usuario confirma, se emite el evento al componente de Livewire
-                        Livewire.dispatch('confirm-toggle-status', { user: userId });
-                    }
-                })
-            }
-        </script>
     </body>
 </html>

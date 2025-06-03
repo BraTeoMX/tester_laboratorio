@@ -4,34 +4,59 @@ use Livewire\Volt\Component;
 use Livewire\WithPagination;
 use App\Models\User;
 use App\Models\CatalogoRol;
-use Illuminate\Database\Eloquent\Collection;
+// 1. 👇 Importamos la FACHADA correcta, como indica la documentación.
+use Jantinnerezo\LivewireAlert\Facades\LivewireAlert;
 
 new class extends Component {
     use WithPagination;
 
+    // 2. ✅ Los listeners siguen siendo la forma correcta de recibir eventos.
+    protected $listeners = [
+        'toggleStatusConfirmed'
+    ];
+
     public function with(): array
     {
         return [
-            // La consulta sigue siendo la misma, con Eager Loading.
             'users' => User::with('role')->orderBy('name')->paginate(10),
         ];
     }
 
     /**
-     * NUEVO MÉTODO: Cambia el estado de un usuario.
-     * Livewire es capaz de recibir el objeto User completo gracias al model binding.
+     * 3. ✅ MÉTODO CORREGIDO: Usando la sintaxis fluida de la Fachada.
      */
-    public function toggleStatus(User $user)
+    public function confirmToggleStatus(User $user)
     {
-        // Cambiamos el estado: si es 1 lo convierte a 0, y si es 0 lo convierte a 1.
-        $user->status = !$user->status;
-        // Guardamos el cambio en la base de datos.
-        $user->save();
-
-        // ¡Eso es todo! Livewire se encargará de refrescar la vista automáticamente.
+        LivewireAlert::title('¿Estás seguro?')
+            ->text('Se cambiará el estado del usuario.')
+            ->question() // Usa el ícono de pregunta
+            ->withConfirmButton('Sí, cambiar') // Botón de confirmación
+            ->withCancelButton('No, cancelar') // Botón de cancelación
+            ->onConfirm('toggleStatusConfirmed', ['userId' => $user->id]) // Evento y datos al confirmar
+            ->show();
     }
 
-}; 
+    /**
+     * 4. ✅ Este método es correcto, solo ajustamos la alerta de éxito.
+     */
+    public function toggleStatusConfirmed($event)
+    {
+        $user = User::find($event['userId']);
+        if ($user) {
+            $user->status = !$user->status;
+            $user->save();
+            
+            // 5. ✅ Usamos la sintaxis de la Fachada también para la alerta de éxito.
+            LivewireAlert::title('¡Hecho!')
+                ->text('El estado del usuario ha sido actualizado.')
+                ->success()
+                ->toast() // Mostramos como una notificación "toast"
+                ->position('top-end') // En la esquina superior derecha
+                ->timer(3000) // Se cierra a los 3 segundos
+                ->show();
+        }
+    }
+};
 ?>
 
 <div>
@@ -85,13 +110,11 @@ new class extends Component {
 
                                         <td class="px-6 py-4 whitespace-nowrap text-center text-sm font-medium">
                                             @if ($user->status == 1)
-                                                {{-- Si el usuario está activo (status = 1), muestra el botón de "Baja" --}}
-                                                <button wire:click="toggleStatus({{ $user->id }})" wire:confirm="¿Estás seguro de que quieres dar de baja a este usuario?" class="inline-flex items-center px-3 py-1 bg-red-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-red-500 active:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800 transition ease-in-out duration-150">
+                                                <button wire:click="confirmToggleStatus({{ $user->id }})" class="inline-flex items-center px-3 py-1 bg-red-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-red-500 active:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800 transition ease-in-out duration-150">
                                                     Baja
                                                 </button>
                                             @else
-                                                {{-- Si el usuario está inactivo (status = 0), muestra el botón de "Alta" --}}
-                                                <button wire:click="toggleStatus({{ $user->id }})" wire:confirm="¿Estás seguro de que quieres dar de alta a este usuario?" class="inline-flex items-center px-3 py-1 bg-green-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-green-500 active:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800 transition ease-in-out duration-150">
+                                                <button wire:click="confirmToggleStatus({{ $user->id }})" class="inline-flex items-center px-3 py-1 bg-green-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-green-500 active:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800 transition ease-in-out duration-150">
                                                     Alta
                                                 </button>
                                             @endif

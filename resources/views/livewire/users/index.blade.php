@@ -11,7 +11,7 @@ new class extends Component {
     public function with(): array
     {
         return [
-            'users' => User::orderBy('name')->paginate(10),
+            'users' => User::with('role')->orderBy('name')->paginate(10),
         ];
     }
 
@@ -64,7 +64,7 @@ new class extends Component {
                                             {{ $user->employee_number }}
                                         </td>
                                         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-300">
-                                            {{ $user->role_id }}
+                                            {{ $user->role?->nombre ?? 'Sin rol' }}
                                         </td>
                                         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-300">
                                             {{ $user->created_at->format('d/m/Y') }}

@@ -10,5 +10,5 @@ class CatalogoRol extends Model
     use HasFactory;
 
     // Especifica el nombre de la tabla si no sigue la convención de Laravel
-    protected $table = 'catalogos_rol'; 
+    protected $table = 'catalogo_roles'; 
 }

@@ -61,4 +61,12 @@ class User extends Authenticatable
             ->map(fn (string $name) => Str::of($name)->substr(0, 1))
             ->implode('');
     }
+
+    public function role()
+    {
+        // El primer parámetro es el modelo relacionado.
+        // El segundo es la clave foránea en la tabla `users` (role_id).
+        // El tercero es la clave primaria en la tabla `catalogo_roles` (id).
+        return $this->belongsTo(CatalogoRol::class, 'role_id', 'id');
+    }
 }

@@ -15,13 +15,52 @@
 
             <flux:navlist variant="outline">
                 <flux:navlist.group :heading="__('Platform')" class="grid">
-                    <flux:navlist.item icon="home" :href="route('dashboard')" :current="request()->routeIs('dashboard')" wire:navigate>{{ __('Dashboard') }}</flux:navlist.item>
+                    <flux:navlist.item icon="chart-pie" :href="route('dashboard')" :current="request()->routeIs('dashboard')" wire:navigate>{{ __('Dashboard') }}</flux:navlist.item>
                 </flux:navlist.group>
             </flux:navlist>
             <flux:navlist variant="outline">
-                <flux:navlist.group :heading="__('Administrador')" class="grid">
-                    <flux:navlist.item icon="cog" :href="route('customers.index')" :current="request()->routeIs('customers.index')" wire:navigate>{{ __('Lista de Clientes') }}</flux:navlist.item>
-                    <flux:navlist.item icon="user-group" :href="route('users.index')" :current="request()->routeIs('users.*')" wire:navigate>{{ __('Adm. Usuarios') }}</flux:navlist.item>
+                <flux:navlist.group
+                    heading="{{ __('Administrador') }}"
+                    expandable :expanded="request()->routeIs('customers.index') || request()->routeIs('users.*')"
+                > 
+                    <flux:navlist.item 
+                        :href="route('customers.index')" 
+                        :current="request()->routeIs('customers.index')" 
+                        wire:navigate
+                    >
+                        {{ __('Lista de Clientes') }}
+                    </flux:navlist.item>
+                    <flux:navlist.item 
+                        icon="user-group"
+                        :href="route('users.index')" 
+                        :current="request()->routeIs('users.*')" 
+                        wire:navigate
+                    >
+                        {{ __('Adm. Usuarios') }}
+                    </flux:navlist.item>
+                </flux:navlist.group>
+            </flux:navlist>
+
+            <flux:navlist variant="outline">
+                <flux:navlist.group
+                    heading="{{ __('Formularios') }}"
+                    expandable :expanded="request()->routeIs('customers.index') || request()->routeIs('users.*')"
+                > 
+                    <flux:navlist.item 
+                        :href="route('customers.index')" 
+                        :current="request()->routeIs('customers.index')" 
+                        wire:navigate
+                    >
+                        {{ __('Lista de Clientes') }}
+                    </flux:navlist.item>
+                    <flux:navlist.item 
+                        icon="user-group"
+                        :href="route('users.index')" 
+                        :current="request()->routeIs('users.*')" 
+                        wire:navigate
+                    >
+                        {{ __('Adm. Usuarios') }}
+                    </flux:navlist.item>
                 </flux:navlist.group>
             </flux:navlist>
 
@@ -135,6 +174,18 @@
 
         {{ $slot }}
 
-        @fluxScripts
+        @php
+            // Le decimos a Flux que el tema por defecto es 'dark'.
+            // El script de Flux leerá esta configuración al inicializarse.
+            $fluxConfig = [
+                'theme' => [
+                    'default' => 'dark',
+                    'key' => 'theme' // Nombre de la clave en localStorage
+                ]
+            ];
+        @endphp
+
+        {{-- Pasamos la configuración a la directiva que carga el script --}}
+        @fluxScripts($fluxConfig)
     </body>
 </html>

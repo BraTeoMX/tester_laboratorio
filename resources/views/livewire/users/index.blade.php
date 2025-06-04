@@ -239,8 +239,8 @@ new class extends Component {
                             class="inline-flex items-center px-4 py-2 bg-blue-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-blue-700"
                         >
                             {{-- Ícono de "Usuario con signo de más" --}}
-                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-4 h-4 mr-1">
-                                <path stroke-linecap="round" stroke-linejoin="round" d="M19 7.5v3m0 0v3m0-3h3m-3 0h-3m-2.25-4.72c.56-2.18 2.5-3.96 4.75-3.96h.25C17.16 2.82 19 4.6 19 6.78V16h1.25a.75.75 0 010 1.5H18v1.75a.75.75 0 01-1.5 0V17h-3.75a.75.75 0 010-1.5H15v-.75a.75.75 0 011.5 0v.75h2.25c.56 2.18 2.5 3.96 4.75 3.96h.25C22.16 21.18 24 19.4 24 17.22V8h-2.25A.75.75 0 0121 7.5v-1.5a.75.75 0 011.5 0V7.5H24" />
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="size-5">
+                                <path d="M10 5a3 3 0 1 1-6 0 3 3 0 0 1 6 0ZM1.615 16.428a1.224 1.224 0 0 1-.569-1.175 6.002 6.002 0 0 1 11.908 0c.058.467-.172.92-.57 1.174A9.953 9.953 0 0 1 7 18a9.953 9.953 0 0 1-5.385-1.572ZM16.25 5.75a.75.75 0 0 0-1.5 0v2h-2a.75.75 0 0 0 0 1.5h2v2a.75.75 0 0 0 1.5 0v-2h2a.75.75 0 0 0 0-1.5h-2v-2Z" />
                             </svg>
                             &nbsp; Crear Usuario
                         </button>

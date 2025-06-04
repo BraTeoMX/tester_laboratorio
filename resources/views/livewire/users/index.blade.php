@@ -238,7 +238,11 @@ new class extends Component {
                             wire:click="openModal"
                             class="inline-flex items-center px-4 py-2 bg-blue-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-blue-700"
                         >
-                            Crear Usuario
+                            {{-- Ícono de "Usuario con signo de más" --}}
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-4 h-4 mr-1">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M19 7.5v3m0 0v3m0-3h3m-3 0h-3m-2.25-4.72c.56-2.18 2.5-3.96 4.75-3.96h.25C17.16 2.82 19 4.6 19 6.78V16h1.25a.75.75 0 010 1.5H18v1.75a.75.75 0 01-1.5 0V17h-3.75a.75.75 0 010-1.5H15v-.75a.75.75 0 011.5 0v.75h2.25c.56 2.18 2.5 3.96 4.75 3.96h.25C22.16 21.18 24 19.4 24 17.22V8h-2.25A.75.75 0 0121 7.5v-1.5a.75.75 0 011.5 0V7.5H24" />
+                            </svg>
+                            &nbsp; Crear Usuario
                         </button>
                     </div>
                     <br>
@@ -266,19 +270,25 @@ new class extends Component {
                                             @if ($user->status == 1) {{-- User is currently ACTIVE --}}
                                                 <button wire:click="confirmToggleStatus({{ $user->id }})" 
                                                         class="inline-flex items-center px-3 py-1 bg-red-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-red-500 active:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800 transition ease-in-out duration-150">
-                                                    Dar de baja
+                                                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-4 h-4 mr-1">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636" />
+                                                    </svg>
                                                 </button>
                                             @else {{-- User is currently INACTIVE --}}
                                                 <button wire:click="confirmToggleStatus({{ $user->id }})" 
                                                         class="inline-flex items-center px-3 py-1 bg-green-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-green-500 active:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800 transition ease-in-out duration-150">
-                                                    Dar de alta
+                                                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-4 h-4 mr-1">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                                    </svg>
                                                 </button>
                                             @endif
                                         </td>
                                         <td class="px-6 py-4 whitespace-nowrap text-center text-sm font-medium">
                                             <button wire:click="editUser({{ $user->id }})"
                                                     class="inline-flex items-center px-3 py-1 bg-blue-500 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-blue-600 active:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800 transition ease-in-out duration-150">
-                                                Editar
+                                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-4 h-4 mr-1">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L6.832 19.82a4.5 4.5 0 01-1.897 1.13l-2.685.8.8-2.685a4.5 4.05 0 011.13-1.897L16.863 4.487zm0 0L19.5 7.125" />
+                                                </svg>
                                             </button>
                                         </td>
                                     </tr>

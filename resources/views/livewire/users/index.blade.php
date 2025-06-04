@@ -5,9 +5,9 @@ use Livewire\WithPagination;
 use App\Models\User;
 use App\Models\CatalogoRol;
 use Jantinnerezo\LivewireAlert\Facades\LivewireAlert;
-use Livewire\Attributes\Rule;
-use LivewireUI\Modal\ModalComponent;
+// use Livewire\Attributes\Rule; // Elimina o comenta esta línea si la tienes
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Validation\Rule;
 
 
 new class extends Component {
@@ -15,29 +15,44 @@ new class extends Component {
 
     public bool $isModalOpen = false;
 
-    // 🆕 1. PROPIEDADES PARA EL FORMULARIO (con reglas de validación)
-    #[Rule('required|string|max:255')]
+    // 🆕 1. NUEVA PROPIEDAD PARA EL CHECKBOX
+    public bool $generateEmail = false;
+
+    // ⬇️ 2. PROPIEDADES SIN REGLAS DIRECTAS (se moverán a un método)
     public $name = '';
-
-    #[Rule('required|string|max:255|unique:users,employee_number')]
     public $employee_number = '';
-
-    #[Rule('required|email|max:255|unique:users,email')]
     public $email = '';
-
-    #[Rule('required|exists:catalogo_roles,id')]
     public $role_id = '';
-
-    #[Rule('required|string|min:8')]
     public $password = '';
 
     protected $listeners = [
         'toggleStatusConfirmed'
     ];
 
+    protected function rules(): array
+    {
+        return [
+            'name' => 'required|string|max:255',
+            'employee_number' => 'required|string|max:255|unique:users,employee_number',
+            // El email es requerido SÓLO si el checkbox no está marcado
+            'email' => [
+                Rule::requiredIf(!$this->generateEmail),
+                'nullable', // Permite que sea nulo si el checkbox está marcado
+                'email',
+                'max:255',
+                'unique:users,email'
+            ],
+            'role_id' => 'required|exists:catalogo_roles,id',
+            'password' => 'required|string|min:8',
+        ];
+    }
+
+
     public function resetInputFields(): void
     {
-        $this->reset(['name', 'employee_number', 'email', 'role_id', 'password']);
+        // Añadimos la nueva propiedad y el resto de campos
+        $this->reset(['name', 'employee_number', 'email', 'role_id', 'password', 'generateEmail']);
+        $this->resetValidation(); // Limpia los errores de validación anteriores
     }
 
     public function openModal(): void
@@ -62,26 +77,39 @@ new class extends Component {
 
     public function saveUser(): void
     {
-        $validatedData = $this->validate(); // Valida usando las reglas de los atributos
+        $validatedData = $this->validate();
 
-        User::create([
+        // Preparamos los datos para la creación
+        $userData = [
             'name' => $validatedData['name'],
             'employee_number' => $validatedData['employee_number'],
-            'email' => $validatedData['email'],
             'role_id' => $validatedData['role_id'],
             'password' => Hash::make($validatedData['password']),
-        ]);
-        
-        $this->closeModal(); // Cierra el modal
+        ];
 
-        // Muestra una alerta de éxito
+        // Si el checkbox NO está marcado, incluimos el email proporcionado
+        if (!$this->generateEmail) {
+            $userData['email'] = $validatedData['email'];
+        }
+
+        // 1. Creamos el usuario (con o sin email)
+        $user = User::create($userData);
+
+        // 2. Si el checkbox SÍ estaba marcado, generamos y guardamos el email
+        if ($this->generateEmail) {
+            $user->email = 'lab' . $user->id . '@lab.com';
+            $user->save(); // 3. Actualizamos el registro
+        }
+        
+        $this->closeModal();
+
         LivewireAlert::title('¡Hecho!')
-                ->text('Usuario creado correctamente.')
-                ->success()
-                ->toast()
-                ->position('top-end')
-                ->timer(3000)
-                ->show();
+            ->text('Usuario creado correctamente.')
+            ->success()
+            ->toast()
+            ->position('top-end')
+            ->timer(3000)
+            ->show();
     }
 
     public function confirmToggleStatus(User $user)
@@ -203,10 +231,18 @@ new class extends Component {
                             @error('employee_number') <span class="text-red-500 text-xs">{{ $message }}</span> @enderror
                         </div>
 
-                        <div>
+                        <div class="flex items-center space-x-2 mt-1">
                             <label for="email" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Correo Electrónico</label>
-                            <input type="email" id="email" wire:model="email" class="mt-1 block w-full border-gray-300 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300 focus:border-indigo-500 dark:focus:border-indigo-600 focus:ring-indigo-500 dark:focus:ring-indigo-600 rounded-md shadow-sm">
-                            @error('email') <span class="text-red-500 text-xs">{{ $message }}</span> @enderror
+                            <input type="email" id="email" wire:model="email"
+                                {{-- 1. Se deshabilita si el checkbox está marcado --}}
+                                @disabled($generateEmail) 
+                                class="block w-full border-gray-300 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300 focus:border-indigo-500 dark:focus:border-indigo-600 focus:ring-indigo-500 dark:focus:ring-indigo-600 rounded-md shadow-sm disabled:bg-gray-200 dark:disabled:bg-gray-700 disabled:cursor-not-allowed">
+                            
+                            {{-- 2. Nuevo checkbox --}}
+                            <div class="flex items-center">
+                                <input id="generateEmail" type="checkbox" wire:model.live="generateEmail" class="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500">
+                                <label for="generateEmail" class="ml-2 block text-sm text-gray-900 dark:text-gray-300">Autogenerar</label>
+                            </div>
                         </div>
 
                         <div>

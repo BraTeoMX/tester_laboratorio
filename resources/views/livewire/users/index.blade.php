@@ -58,7 +58,7 @@ new class extends Component {
     protected function rules(): array
     {
         return [
-            'name' => 'required|string|max:255',
+            'name' => 'required|string|max:255|unique:users,name',
             'employee_number' => 'required|string|max:255|unique:users,employee_number',
             // El email es requerido SÓLO si el checkbox no está marcado
             'email' => [
@@ -257,13 +257,13 @@ new class extends Component {
                     <div class="space-y-4">
                         <div>
                             <label for="name" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Nombre</label>
-                            <input type="text" id="name" wire:model="name" class="mt-1 block w-full border-gray-300 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300 focus:border-indigo-500 dark:focus:border-indigo-600 focus:ring-indigo-500 dark:focus:ring-indigo-600 rounded-md shadow-sm">
+                            <input type="text" id="name" wire:model.blur="name" class="mt-1 block w-full border-gray-300 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300 focus:border-indigo-500 dark:focus:border-indigo-600 focus:ring-indigo-500 dark:focus:ring-indigo-600 rounded-md shadow-sm">
                             @error('name') <span class="text-red-500 text-xs">{{ $message }}</span> @enderror
                         </div>
 
                         <div>
                             <label for="employee_number" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Número de Empleado</label>
-                            <input type="text" id="employee_number" wire:model="employee_number" class="mt-1 block w-full border-gray-300 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300 focus:border-indigo-500 dark:focus:border-indigo-600 focus:ring-indigo-500 dark:focus:ring-indigo-600 rounded-md shadow-sm">
+                            <input type="text" id="employee_number" wire:model.blur="employee_number" class="mt-1 block w-full border-gray-300 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300 focus:border-indigo-500 dark:focus:border-indigo-600 focus:ring-indigo-500 dark:focus:ring-indigo-600 rounded-md shadow-sm">
                             @error('employee_number') <span class="text-red-500 text-xs">{{ $message }}</span> @enderror
                         </div>
 

@@ -14,16 +14,42 @@ new class extends Component {
     use WithPagination;
 
     public bool $isModalOpen = false;
-
-    // 🆕 1. NUEVA PROPIEDAD PARA EL CHECKBOX
     public bool $generateEmail = false;
+    public string $search = '';
 
-    // ⬇️ 2. PROPIEDADES SIN REGLAS DIRECTAS (se moverán a un método)
     public $name = '';
     public $employee_number = '';
     public $email = '';
     public $role_id = '';
     public $password = '';
+
+    public function updatingSearch(): void
+    {
+        $this->resetPage();
+    }
+    
+    public function with(): array
+    {
+        $usersQuery = User::with('role');
+
+        if (!empty($this->search)) {
+            $usersQuery->where(function ($query) {
+                $searchTerm = '%' . $this->search . '%';
+                $query->where('name', 'like', $searchTerm)
+                      ->orWhere('email', 'like', $searchTerm)
+                      ->orWhere('employee_number', 'like', $searchTerm)
+                      // Búsqueda en la relación 'role'
+                      ->orWhereHas('role', function ($q) use ($searchTerm) {
+                          $q->where('nombre', 'like', $searchTerm);
+                      });
+            });
+        }
+
+        return [
+            'users' => $usersQuery->orderBy('name')->paginate(10),
+            'roles' => CatalogoRol::all(),
+        ];
+    }
 
     protected $listeners = [
         'toggleStatusConfirmed'
@@ -67,13 +93,6 @@ new class extends Component {
         $this->resetInputFields();
     }
 
-    public function with(): array
-    {
-        return [
-            'users' => User::with('role')->orderBy('name')->paginate(10),
-            'roles' => CatalogoRol::all(),
-        ];
-    }
 
     public function saveUser(): void
     {
@@ -153,7 +172,18 @@ new class extends Component {
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
             <div class="bg-white dark:bg-gray-800 overflow-hidden shadow-sm sm:rounded-lg">
                 <div class="p-6 text-gray-900 dark:text-gray-100">
-                    <div class="overflow-x-auto">
+
+                    <div class="flex justify-between items-center mb-4">
+                        
+                        <div class="w-1/3">
+                            <input 
+                                wire:model.live.debounce.300ms="search" 
+                                type="text" 
+                                placeholder="Buscar por nombre, email, rol..."
+                                class="mt-1 block w-full border-gray-300 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300 focus:border-indigo-500 dark:focus:border-indigo-600 focus:ring-indigo-500 dark:focus:ring-indigo-600 rounded-md shadow-sm"
+                            >
+                        </div>
+
                         <button
                             type="button"
                             wire:click="openModal"
@@ -183,10 +213,16 @@ new class extends Component {
                                         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-300">{{ $user->employee_number }}</td>
                                         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-300">{{ $user->role?->nombre ?? 'Sin rol' }}</td>
                                         <td class="px-6 py-4 whitespace-nowrap text-center text-sm font-medium">
-                                            @if ($user->status == 1)
-                                                <button wire:click="confirmToggleStatus({{ $user->id }})" class="inline-flex items-center px-3 py-1 bg-red-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-red-500 active:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800 transition ease-in-out duration-150">Baja</button>
-                                            @else
-                                                <button wire:click="confirmToggleStatus({{ $user->id }})" class="inline-flex items-center px-3 py-1 bg-green-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-green-500 active:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800 transition ease-in-out duration-150">Alta</button>
+                                            @if ($user->status == 1) {{-- User is currently ACTIVE --}}
+                                                <button wire:click="confirmToggleStatus({{ $user->id }})" 
+                                                        class="inline-flex items-center px-3 py-1 bg-red-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-red-500 active:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800 transition ease-in-out duration-150">
+                                                    Dar de baja
+                                                </button>
+                                            @else {{-- User is currently INACTIVE --}}
+                                                <button wire:click="confirmToggleStatus({{ $user->id }})" 
+                                                        class="inline-flex items-center px-3 py-1 bg-green-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-green-500 active:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800 transition ease-in-out duration-150">
+                                                    Dar de alta
+                                                </button>
                                             @endif
                                         </td>
                                     </tr>

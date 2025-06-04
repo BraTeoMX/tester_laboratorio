@@ -16,7 +16,8 @@ new class extends Component {
     public bool $isModalOpen = false;
     public bool $generateEmail = false;
     public string $search = '';
-
+    public ?int $userIdBeingEdited = null;
+     public bool $showPassword = false;
     public $name = '';
     public $employee_number = '';
     public $email = '';
@@ -57,33 +58,59 @@ new class extends Component {
 
     protected function rules(): array
     {
+        $userIdToIgnore = $this->userIdBeingEdited;
+
         return [
-            'name' => 'required|string|max:255|unique:users,name',
-            'employee_number' => 'required|string|max:255|unique:users,employee_number',
-            // El email es requerido SÓLO si el checkbox no está marcado
+            'name' => [
+                'required',
+                'string',
+                'max:255',
+                Rule::unique('users', 'name')->ignore($userIdToIgnore),
+            ],
+            'employee_number' => [
+                'required',
+                'string',
+                'max:255',
+                Rule::unique('users', 'employee_number')->ignore($userIdToIgnore),
+            ],
             'email' => [
                 Rule::requiredIf(!$this->generateEmail),
-                'nullable', // Permite que sea nulo si el checkbox está marcado
+                'nullable',
                 'email',
                 'max:255',
-                'unique:users,email'
+                Rule::unique('users', 'email')->ignore($userIdToIgnore),
             ],
             'role_id' => 'required|exists:catalogo_roles,id',
-            'password' => 'required|string|min:8',
+            // La contraseña es opcional al editar
+            'password' => ['nullable', 'string', 'min:8'],
         ];
     }
 
 
     public function resetInputFields(): void
     {
-        // Añadimos la nueva propiedad y el resto de campos
-        $this->reset(['name', 'employee_number', 'email', 'role_id', 'password', 'generateEmail']);
-        $this->resetValidation(); // Limpia los errores de validación anteriores
+        $this->reset(['name', 'employee_number', 'email', 'role_id', 'password', 'generateEmail', 'userIdBeingEdited', 'showPassword']);
+        $this->resetValidation();
     }
 
     public function openModal(): void
     {
         $this->resetInputFields();
+        $this->isModalOpen = true;
+    }
+
+    public function editUser(User $user): void
+    {
+        $this->resetInputFields(); // Limpia cualquier estado anterior
+        $this->userIdBeingEdited = $user->id;
+        $this->name = $user->name;
+        $this->employee_number = $user->employee_number;
+        $this->email = $user->email;
+        $this->role_id = $user->role_id;
+        // La contraseña no se carga para editar, solo se actualiza si se escribe una nueva.
+        // Si el email del usuario fue autogenerado, marcamos el checkbox.
+        $this->generateEmail = (str_starts_with($user->email, 'lab') && str_ends_with($user->email, '@lab.com'));
+
         $this->isModalOpen = true;
     }
 
@@ -97,33 +124,55 @@ new class extends Component {
     public function saveUser(): void
     {
         $validatedData = $this->validate();
+        $isEditing = !is_null($this->userIdBeingEdited);
 
-        // Preparamos los datos para la creación
         $userData = [
             'name' => $validatedData['name'],
             'employee_number' => $validatedData['employee_number'],
             'role_id' => $validatedData['role_id'],
-            'password' => Hash::make($validatedData['password']),
         ];
 
-        // Si el checkbox NO está marcado, incluimos el email proporcionado
-        if (!$this->generateEmail) {
+        // Manejo del email
+        if ($this->generateEmail) {
+            // Si estamos creando Y el checkbox está marcado, el email se generará después.
+            // Si estamos editando Y el checkbox está marcado, el email se regenerará.
+            // No hacemos nada con $userData['email'] aquí si se va a autogenerar.
+        } else {
             $userData['email'] = $validatedData['email'];
         }
+        
+        // Manejo de la contraseña: solo se actualiza si se provee una
+        if (!empty($validatedData['password'])) {
+            $userData['password'] = Hash::make($validatedData['password']);
+        }
 
-        // 1. Creamos el usuario (con o sin email)
-        $user = User::create($userData);
+        if ($isEditing) {
+            // --- LÓGICA DE ACTUALIZACIÓN ---
+            $user = User::findOrFail($this->userIdBeingEdited);
+            $user->update($userData);
 
-        // 2. Si el checkbox SÍ estaba marcado, generamos y guardamos el email
-        if ($this->generateEmail) {
-            $user->email = 'lab' . $user->id . '@lab.com';
-            $user->save(); // 3. Actualizamos el registro
+            if ($this->generateEmail) {
+                // Si se marcó autogenerar al editar, se actualiza el email.
+                $user->email = 'lab' . $user->id . '@lab.com';
+                $user->save();
+            }
+            $alertMessage = 'Usuario actualizado correctamente.';
+
+        } else {
+            // --- LÓGICA DE CREACIÓN (como estaba antes) ---
+            $user = User::create($userData); // Email podría no estar aquí si es autogenerado
+
+            if ($this->generateEmail) {
+                $user->email = 'lab' . $user->id . '@lab.com';
+                $user->save();
+            }
+            $alertMessage = 'Usuario creado correctamente.';
         }
         
         $this->closeModal();
 
         LivewireAlert::title('¡Hecho!')
-            ->text('Usuario creado correctamente.')
+            ->text($alertMessage)
             ->success()
             ->toast()
             ->position('top-end')
@@ -203,6 +252,7 @@ new class extends Component {
                                     <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Numero Empleado</th>
                                     <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Rol</th>
                                     <th scope="col" class="px-6 py-3 text-center text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Acción</th>
+                                    <th scope="col" class="px-6 py-3 text-center text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Editar</th>
                                 </tr>
                             </thead>
                             <tbody class="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
@@ -224,6 +274,12 @@ new class extends Component {
                                                     Dar de alta
                                                 </button>
                                             @endif
+                                        </td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-center text-sm font-medium">
+                                            <button wire:click="editUser({{ $user->id }})"
+                                                    class="inline-flex items-center px-3 py-1 bg-blue-500 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-blue-600 active:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800 transition ease-in-out duration-150">
+                                                Editar
+                                            </button>
                                         </td>
                                     </tr>
                                 @empty
@@ -251,7 +307,7 @@ new class extends Component {
                 
                 <form wire:submit.prevent="saveUser">
                     <h3 class="text-lg font-medium text-gray-900 dark:text-gray-100 mb-4">
-                        Crear Nuevo Usuario
+                        {{ $userIdBeingEdited ? 'Actualizar Usuario' : 'Crear Nuevo Usuario' }}
                     </h3>
 
                     <div class="space-y-4">
@@ -295,8 +351,42 @@ new class extends Component {
 
                         <div>
                             <label for="password" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Contraseña</label>
-                            <input type="password" id="password" wire:model="password" class="mt-1 block w-full border-gray-300 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300 focus:border-indigo-500 dark:focus:border-indigo-600 focus:ring-indigo-500 dark:focus:ring-indigo-600 rounded-md shadow-sm">
-                            @error('password') <span class="text-red-500 text-xs">{{ $message }}</span> @enderror
+                            
+                            {{-- 1. Contenedor con posición relativa --}}
+                            <div class="relative mt-1">
+                                
+                                {{-- 2. El input ahora tiene un padding a la derecha (pr-10) para hacer espacio al ícono --}}
+                                <input 
+                                    id="password" 
+                                    wire:model="password"
+                                    {{-- 3. El tipo de input es dinámico --}}
+                                    type="{{ $showPassword ? 'text' : 'password' }}"
+                                    class="block w-full pr-10 border-gray-300 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300 focus:border-indigo-500 dark:focus:border-indigo-600 focus:ring-indigo-500 dark:focus:ring-indigo-600 rounded-md shadow-sm"
+                                    placeholder="{{ $userIdBeingEdited ? '(Dejar en blanco para no cambiar)' : '' }}">
+
+                                {{-- 4. El botón con el ícono, posicionado de forma absoluta --}}
+                                <button 
+                                    type="button" 
+                                    {{-- 5. Al hacer clic, se alterna el valor de $showPassword --}}
+                                    wire:click="$toggle('showPassword')" 
+                                    class="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-600 dark:hover:text-gray-200"
+                                >
+                                    {{-- 6. Se muestra un ícono u otro dependiendo del estado --}}
+                                    @if ($showPassword)
+                                        {{-- Ícono de "Ojo Abierto" (ocultar contraseña) --}}
+                                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5">
+                                            <path stroke-linecap="round" stroke-linejoin="round" d="M2.036 12.322a1.012 1.012 0 0 1 0-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178Z" />
+                                            <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" />
+                                        </svg>
+                                    @else
+                                        {{-- Ícono de "Ojo Cerrado" (mostrar contraseña) --}}
+                                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5">
+                                            <path stroke-linecap="round" stroke-linejoin="round" d="M3.98 8.223A10.477 10.477 0 0 0 1.934 12C3.226 16.338 7.244 19.5 12 19.5c.993 0 1.953-.138 2.863-.395M6.228 6.228A10.451 10.451 0 0 1 12 4.5c4.756 0 8.773 3.162 10.065 7.498a10.522 10.522 0 0 1-4.293 5.774M6.228 6.228 3 3m3.228 3.228 3.65 3.65m7.894 7.894L21 21m-3.228-3.228-3.65-3.65m0 0a3 3 0 1 0-4.243-4.243m4.243 4.243L6.228 6.228" />
+                                        </svg>
+                                    @endif
+                                </button>
+                            </div>
+                            @error('password') <span class="text-red-500 text-xs mt-1">{{ $message }}</span> @enderror
                         </div>
                     </div>
 
@@ -305,7 +395,7 @@ new class extends Component {
                             Cancelar
                         </button>
                         <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700">
-                            Guardar
+                            {{ $userIdBeingEdited ? 'Actualizar' : 'Guardar' }}
                         </button>
                     </div>
                 </form>

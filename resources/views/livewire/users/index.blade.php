@@ -231,18 +231,19 @@ new class extends Component {
                             @error('employee_number') <span class="text-red-500 text-xs">{{ $message }}</span> @enderror
                         </div>
 
-                        <div class="flex items-center space-x-2 mt-1">
+                        <div>
                             <label for="email" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Correo Electrónico</label>
-                            <input type="email" id="email" wire:model="email"
-                                {{-- 1. Se deshabilita si el checkbox está marcado --}}
-                                @disabled($generateEmail) 
-                                class="block w-full border-gray-300 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300 focus:border-indigo-500 dark:focus:border-indigo-600 focus:ring-indigo-500 dark:focus:ring-indigo-600 rounded-md shadow-sm disabled:bg-gray-200 dark:disabled:bg-gray-700 disabled:cursor-not-allowed">
-                            
-                            {{-- 2. Nuevo checkbox --}}
-                            <div class="flex items-center">
-                                <input id="generateEmail" type="checkbox" wire:model.live="generateEmail" class="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500">
-                                <label for="generateEmail" class="ml-2 block text-sm text-gray-900 dark:text-gray-300">Autogenerar</label>
+                            <div class="flex items-center space-x-2 mt-1">
+                                <input type="email" id="email" wire:model="email"
+                                    @disabled($generateEmail) 
+                                    class="block w-full border-gray-300 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300 focus:border-indigo-500 dark:focus:border-indigo-600 focus:ring-indigo-500 dark:focus:ring-indigo-600 rounded-md shadow-sm disabled:bg-gray-200 dark:disabled:bg-gray-700 disabled:cursor-not-allowed">
+                                
+                                <div class="flex items-center">
+                                    <input id="generateEmail" type="checkbox" wire:model.live="generateEmail" class="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500">
+                                    <label for="generateEmail" class="ml-2 block text-sm text-gray-900 dark:text-gray-300">Autogenerar</label>
+                                </div>
                             </div>
+                            @error('email') <span class="text-red-500 text-xs mt-1">{{ $message }}</span> @enderror
                         </div>
 
                         <div>

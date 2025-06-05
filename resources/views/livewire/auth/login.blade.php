@@ -12,8 +12,9 @@ use Livewire\Attributes\Validate;
 use Livewire\Volt\Component;
 
 new #[Layout('components.layouts.auth')] class extends Component {
-    #[Validate('required|string|email')]
-    public string $email = '';
+    // We'll rename 'email' to 'credential' to be more generic
+    #[Validate('required|string')]
+    public string $credential = ''; 
 
     #[Validate('required|string')]
     public string $password = '';
@@ -29,11 +30,14 @@ new #[Layout('components.layouts.auth')] class extends Component {
 
         $this->ensureIsNotRateLimited();
 
-        if (! Auth::attempt(['email' => $this->email, 'password' => $this->password], $this->remember)) {
+        // Determine if the credential is an email or employee_number
+        $fieldType = filter_var($this->credential, FILTER_VALIDATE_EMAIL) ? 'email' : 'employee_number';
+
+        if (! Auth::attempt([$fieldType => $this->credential, 'password' => $this->password], $this->remember)) {
             RateLimiter::hit($this->throttleKey());
 
             throw ValidationException::withMessages([
-                'email' => __('auth.failed'),
+                'credential' => __('auth.failed'), // Change 'email' to 'credential' for the error message
             ]);
         }
 
@@ -57,7 +61,7 @@ new #[Layout('components.layouts.auth')] class extends Component {
         $seconds = RateLimiter::availableIn($this->throttleKey());
 
         throw ValidationException::withMessages([
-            'email' => __('auth.throttle', [
+            'credential' => __('auth.throttle', [ // Change 'email' to 'credential' for the error message
                 'seconds' => $seconds,
                 'minutes' => ceil($seconds / 60),
             ]),
@@ -69,29 +73,27 @@ new #[Layout('components.layouts.auth')] class extends Component {
      */
     protected function throttleKey(): string
     {
-        return Str::transliterate(Str::lower($this->email).'|'.request()->ip());
+        // Use the generic 'credential' for the throttle key
+        return Str::transliterate(Str::lower($this->credential).'|'.request()->ip());
     }
 }; ?>
 
 <div class="flex flex-col gap-6">
     <x-auth-header :title="__('Accede con tu cuenta')" :description="__('ingresa tu numero de empleado o correo asociado')" />
 
-    <!-- Session Status -->
     <x-auth-session-status class="text-center" :status="session('status')" />
 
     <form wire:submit="login" class="flex flex-col gap-6">
-        <!-- Email Address -->
         <flux:input
-            wire:model="email"
+            wire:model="credential"
             :label="__('Numero de empleado o correo electrónico')"
-            type="email"
+            type="text" {{-- Change type to text since it can be either email or employee_number --}}
             required
             autofocus
-            autocomplete="email"
-            placeholder="email@example.com"
+            autocomplete="username" {{-- Changed to 'username' as it's a generic credential --}}
+            placeholder="empleado@empresa.com o 18080" {{-- Updated placeholder --}}
         />
 
-        <!-- Password -->
         <div class="relative">
             <flux:input
                 wire:model="password"
@@ -104,12 +106,8 @@ new #[Layout('components.layouts.auth')] class extends Component {
             />
         </div>
 
-        <!-- Remember Me -->
-        <flux:checkbox wire:model="remember" :label="__('Recordarme')" />
-
         <div class="flex items-center justify-end">
             <flux:button variant="primary" type="submit" class="w-full">{{ __('Iniciar sesion') }}</flux:button>
         </div>
     </form>
-
 </div>

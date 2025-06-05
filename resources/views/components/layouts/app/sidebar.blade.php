@@ -107,7 +107,7 @@
                     <flux:menu.separator />
 
                     <flux:menu.radio.group>
-                        <flux:menu.item :href="route('settings.profile')" icon="cog" wire:navigate>{{ __('Settings') }}</flux:menu.item>
+                        <flux:menu.item :href="route('settings.appearance')" icon="moon" wire:navigate>{{ __('Apariencia') }}</flux:menu.item>
                     </flux:menu.radio.group>
 
                     <flux:menu.separator />
@@ -157,7 +157,7 @@
                     <flux:menu.separator />
 
                     <flux:menu.radio.group>
-                        <flux:menu.item :href="route('settings.profile')" icon="cog" wire:navigate>{{ __('Settings') }}</flux:menu.item>
+                        <flux:menu.item :href="route('settings.appearance')" icon="moon" wire:navigate>{{ __('Apariencia') }}</flux:menu.item>
                     </flux:menu.radio.group>
 
                     <flux:menu.separator />
@@ -174,18 +174,6 @@
 
         {{ $slot }}
 
-        @php
-            // Le decimos a Flux que el tema por defecto es 'dark'.
-            // El script de Flux leerá esta configuración al inicializarse.
-            $fluxConfig = [
-                'theme' => [
-                    'default' => 'dark',
-                    'key' => 'theme' // Nombre de la clave en localStorage
-                ]
-            ];
-        @endphp
-
-        {{-- Pasamos la configuración a la directiva que carga el script --}}
-        @fluxScripts($fluxConfig)
+        @fluxScripts
     </body>
 </html>

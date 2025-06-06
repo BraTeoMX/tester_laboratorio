@@ -7,16 +7,17 @@ Route::get('/', function () {
     if (Auth::guest()) {
         return redirect()->route('login');
     }
-    return view('dashboard'); // o redirigir al dashboard
+    $routeName = match ((int)Auth::user()->role_id) {
+        5       => 'vistaAuditor',
+        6       => 'vistaAuditor6',
+        default => 'dashboard',
+    };
+    return redirect()->route($routeName);
 })->name('home');
 
-Route::view('dashboard', 'dashboard')
-    ->middleware(['auth', 'verified'])
-    ->name('dashboard');
-
-Route::middleware(['auth'])->group(function () {
+Route::middleware(['auth', 'verified', 'role:1,2,3,4'])->group(function () {
+    Route::view('dashboard', 'dashboard')->middleware(['auth', 'verified'])->name('dashboard');
     Route::redirect('settings', 'settings/profile');
-
     Volt::route('settings/profile', 'settings.profile')->name('settings.profile');
     Volt::route('settings/password', 'settings.password')->name('settings.password');
     Volt::route('settings/appearance', 'settings.appearance')->name('settings.appearance');
@@ -24,5 +25,14 @@ Route::middleware(['auth'])->group(function () {
     Volt::route('users', 'users.index')->name('users.index');
 });
 
+Route::middleware(['auth', 'role:5'])->group(function () {
+    Volt::route('settings/appearance', 'settings.appearance')->name('settings.appearance');
+    Route::view('auditor', 'vistaAuditor')->name('vistaAuditor');
+});
+
+Route::middleware(['auth', 'role:5'])->group(function () {
+    Volt::route('settings/appearance', 'settings.appearance')->name('settings.appearance');
+    Route::view('auditor6', 'vistaAuditor6')->name('vistaAuditor6');
+});
 
 require __DIR__.'/auth.php';

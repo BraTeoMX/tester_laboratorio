@@ -44,7 +44,19 @@ new #[Layout('components.layouts.auth')] class extends Component {
         RateLimiter::clear($this->throttleKey());
         Session::regenerate();
 
-        $this->redirectIntended(default: route('dashboard', absolute: false), navigate: true);
+        // 1. Obtenemos el usuario que acaba de iniciar sesión.
+        $user = Auth::user();
+
+        // 2. Usamos 'match' para determinar la ruta de destino según el role_id.
+        $routeName = match ((int)$user->role_id) {
+            1, 2, 3, 4 => 'dashboard',
+            5           => 'vistaAuditor',
+            default     => 'dashboard', // Una ruta por defecto como fallback
+        };
+
+        // 3. Redirigimos al usuario a la ruta determinada.
+        // Usamos navigate: true para una transición SPA-like.
+        $this->redirect(route($routeName), navigate: true);
     }
 
     /**
